@@ -24,7 +24,7 @@ private:
     void highlightSquare(sf::RenderWindow& window, position pos, sf::Color color);
 
     
-    std::string evaluatePosition(int searchDepth = 2);
+    std::string evaluatePosition(int searchDepth = 5);
     std::string movesToString(const std::vector<Move>& seq, bool startWhite) const;
 
 public:

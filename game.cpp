@@ -177,7 +177,7 @@ void Game::drawBoard(sf::RenderWindow& window) {
 }
 
 std::string Game::evaluatePosition(int searchDepth) {
-    constexpr int kMaxMateDepth = 2;
+    constexpr int kMaxMateDepth = 5;
     searchDepth = std::clamp(searchDepth, 1, kMaxMateDepth);
 
     std::ostringstream out;
@@ -192,17 +192,12 @@ std::string Game::evaluatePosition(int searchDepth) {
     }
 
     
-    int mateIn = board.findMate(searchDepth, whiteToMove, seq);
-    if (mateIn > 0 && !seq.empty()) {
-        const auto& m = seq[0];
-        char pieceChar = std::toupper(board.getPieceSymbol(m.fromRow, m.fromCol));
-        
-        
-        std::string from = std::string(1, 'a' + m.fromCol) + std::to_string(8 - m.fromRow);
-        std::string to = std::string(1, 'a' + m.toCol) + std::to_string(8 - m.toRow);
-        
-        out << "MATE IN " << mateIn << " (" << pieceChar << from << "-" << to << ") | ";
-        out << (whiteToMove ? "WHITE wins" : "BLACK wins"); 
+    int mateInPlies = board.findMate(searchDepth, whiteToMove, seq);
+    if (mateInPlies > 0 && !seq.empty()) {
+        int mateInMoves = (mateInPlies + 1) / 2;
+        std::string line = movesToString(seq, whiteToMove);
+        out << "MATE IN " << mateInMoves << " (" << line << ") | ";
+        out << (whiteToMove ? "WHITE wins" : "BLACK wins");
         return out.str();
     }
 
