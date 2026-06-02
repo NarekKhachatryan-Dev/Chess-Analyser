@@ -31,6 +31,7 @@ bool Game::loadFont() {
 
 void Game::runGUI() {
     sf::RenderWindow window(sf::VideoMode({800, 950}), "Position Analyzer Pro");
+    window.setPosition(sf::Vector2i(570, 50));
     loadAllTextures();
     
     
