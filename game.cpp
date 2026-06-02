@@ -24,13 +24,13 @@ void Game::loadAllTextures() {
 }
 
 bool Game::loadFont() {
-    return font.loadFromFile("arial.ttf") ||
-           font.loadFromFile("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf") ||
-           font.loadFromFile("/usr/share/fonts/truetype/freefont/FreeSans.ttf");
+    return font.openFromFile("arial.ttf") ||
+           font.openFromFile("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf") ||
+           font.openFromFile("/usr/share/fonts/truetype/freefont/FreeSans.ttf");
 }
 
 void Game::runGUI() {
-    sf::RenderWindow window(sf::VideoMode(800, 950), "Position Analyzer Pro");
+    sf::RenderWindow window(sf::VideoMode({800, 950}), "Position Analyzer Pro");
     loadAllTextures();
     
     
@@ -38,21 +38,21 @@ void Game::runGUI() {
 
     fontLoaded = loadFont();
 
-    sf::Text evalText;
-    if (fontLoaded) evalText.setFont(font);
+    sf::Text evalText(font);
+    
     evalText.setCharacterSize(16);
     evalText.setFillColor(sf::Color::Cyan);
-    evalText.setPosition(10.f, 820.f);
+    evalText.setPosition({10.f, 820.f});
 
     
-    sf::Text turnText;
-    if (fontLoaded) turnText.setFont(font);
+    sf::Text turnText(font);
+    
     turnText.setCharacterSize(18);
-    turnText.setPosition(10.f, 895.f);
+    turnText.setPosition({10.f, 895.f});
 
     
-    sf::RectangleShape clearBtn(sf::Vector2f(120.f, 40.f));
-    clearBtn.setPosition(660.f, 890.f);
+    sf::RectangleShape clearBtn({ 120.f, 40.f });
+    clearBtn.setPosition({660.f, 890.f});
     clearBtn.setFillColor(sf::Color(150, 50, 50));
 
     const std::vector<char> pieceOrder = {'.','P','N','B','R','Q','K','p','n','b','r','q','k'};
@@ -62,26 +62,23 @@ void Game::runGUI() {
     std::string currentEvalString = "Evaluating...";
 
     while (window.isOpen()) {
-        sf::Event event;
-        while (window.pollEvent(event)) {
-            if (event.type == sf::Event::Closed)
+        while (const std::optional<sf::Event> event = window.pollEvent()) {
+            if (event->is<sf::Event::Closed>())
                 window.close();
             
-            
-            if (event.type == sf::Event::KeyPressed) {
-                if (event.key.code == sf::Keyboard::Space) {
+            if (const auto* keyPress = event->getIf<sf::Event::KeyPressed>()) {
+                if (keyPress->code == sf::Keyboard::Key::Space) {
                     whiteToMove = !whiteToMove; 
                     needEvaluation = true; 
                 }
             }
 
-            
-            if (event.type == sf::Event::MouseButtonPressed) {
-                int x = event.mouseButton.x;
-                int y = event.mouseButton.y;
+            if (const auto* mousePress = event->getIf<sf::Event::MouseButtonPressed>()) {
+                int x = mousePress->position.x;
+                int y = mousePress->position.y;
                 
-                if (event.mouseButton.button == sf::Mouse::Left) {
-                    if (clearBtn.getGlobalBounds().contains(x, y)) {
+                if (mousePress->button == sf::Mouse::Button::Left) {
+                    if (clearBtn.getGlobalBounds().contains({(float)x, (float)y})) {
                         board.clear();
                         needEvaluation = true; 
                     } else if (y < 800) {
@@ -114,8 +111,8 @@ void Game::runGUI() {
         
         window.draw(clearBtn);
         if (fontLoaded) {
-            sf::Text btnText("Clear Board", font, 16);
-            btnText.setPosition(670.f, 900.f);
+            sf::Text btnText(font, "Clear Board", 16);
+            btnText.setPosition({670.f, 900.f});
             window.draw(btnText);
 
             
@@ -133,8 +130,8 @@ void Game::runGUI() {
 
 void Game::highlightSquare(sf::RenderWindow& window, position pos, sf::Color color) {
     if (pos.row < 0 || pos.col < 0) return;
-    sf::RectangleShape highlight(sf::Vector2f(100.f, 100.f));
-    highlight.setPosition(pos.col * 100.f, pos.row * 100.f);
+    sf::RectangleShape highlight({ 100.f, 100.f });
+    highlight.setPosition({pos.col * 100.f, pos.row * 100.f});
     highlight.setFillColor(color);
     window.draw(highlight);
 }
@@ -142,16 +139,15 @@ void Game::highlightSquare(sf::RenderWindow& window, position pos, sf::Color col
 void Game::drawBoard(sf::RenderWindow& window) {
     for (int r = 0; r < 8; ++r) {
         for (int c = 0; c < 8; ++c) {
-            sf::RectangleShape rect(sf::Vector2f(100.f, 100.f));
-            rect.setPosition(c * 100.f, r * 100.f);
+            sf::RectangleShape rect({ 100.f, 100.f });
+            rect.setPosition({c * 100.f, r * 100.f});
             rect.setFillColor((r + c) % 2 == 0 ? sf::Color(238, 238, 210) : sf::Color(118, 150, 86));
             window.draw(rect);
             
             char symbol = board.getPieceSymbol(r, c);
             if (symbol != '.') {
-                sf::Sprite sprite;
-                sprite.setTexture(textureMap[symbol]);
-                sprite.setPosition(c * 100.f, r * 100.f);
+                sf::Sprite sprite(textureMap[symbol]);
+                sprite.setPosition({c * 100.f, r * 100.f});
                 window.draw(sprite);
             }
         }
@@ -160,8 +156,8 @@ void Game::drawBoard(sf::RenderWindow& window) {
     if (!fontLoaded) return;
 
     for (int i = 0; i < 8; i++) {
-        sf::Text label;
-        label.setFont(font);
+        sf::Text label(font);
+        
         label.setCharacterSize(20);
         
         
@@ -169,12 +165,12 @@ void Game::drawBoard(sf::RenderWindow& window) {
 
         
         label.setString(std::to_string(8 - i));
-        label.setPosition(5.f, i * 100 + 40.f);
+        label.setPosition({5.f, i * 100 + 40.f});
         window.draw(label);
 
         
         label.setString(std::string(1, 'A' + i));
-        label.setPosition(i * 100 + 45.f, 775.f);
+        label.setPosition({i * 100 + 45.f, 775.f});
         window.draw(label);
     }
 }
